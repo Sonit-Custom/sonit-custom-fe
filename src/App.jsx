@@ -11,6 +11,8 @@ import Home from "./pages/Home";
 // Components
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Customize from './pages/Customize';
+import Store from './pages/Store';
 import PrivateRoute from './routes/PrivateRoute';
 
 // App Routes Component
@@ -50,6 +52,14 @@ const AppRoutes = () => {
             <Dashboard />
           </PrivateRoute>
         } 
+      />
+      <Route 
+        path="/customize" 
+        element={<Layout><Customize /></Layout>} 
+      />
+      <Route 
+        path="/store" 
+        element={<Layout><Store /></Layout>} 
       />
       <Route 
         path="/" 
