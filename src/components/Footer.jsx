@@ -30,7 +30,6 @@ const Footer = () => (
     
     <div className="font-semibold text-base md:text-lg my-2 text-center">BORN TO PERFORM</div>
     <div className="text-xs md:text-sm text-gray-300 mb-2 text-center">© 2025 Sonic Custom. All rights reserved.</div>
-    <ScrollToTopButton className="absolute right-10 bottom-8" />
   </footer>
 );
 

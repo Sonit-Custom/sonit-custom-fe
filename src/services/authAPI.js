@@ -3,9 +3,10 @@ import axiosInstance from './axiosInstance';
 // Cập nhật các endpoint API thật của bạn ở đây
 const API_ENDPOINTS = {
   LOGIN: '/auth/login',
-  REFRESH: '/auth/refresh',
+  REFRESH: '/auth/refresh-token',
   LOGOUT: '/auth/logout',
   PROFILE: '/auth/profile',
+  GET_USER_BY_ID: '/users', // base path
 };
 
 const authAPI = {
@@ -21,37 +22,41 @@ const authAPI = {
         email,
         password,
       });
-      
-      return response.data;
+      // Chuẩn hóa key cho slice
+      return {
+        accessToken: response.data.access_token,
+        refreshToken: response.data.refresh_token,
+        user: null // Nếu API trả user thì lấy, không thì null
+      };
     } catch (error) {
       throw error;
     }
   },
 
-  /**
-   * Refresh access token bằng refresh token
-   * @param {string} refreshToken - Refresh token
-   * @returns {Promise} - Trả về access token và refresh token mới
-   */
-  refreshToken: async (refreshToken) => {
-    try {
-      const response = await axiosInstance.post(API_ENDPOINTS.REFRESH, {
-        refreshToken,
-      });
-      
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
+  // refreshToken: async (refreshToken) => {
+  //   try {
+  //     const response = await axiosInstance.post(API_ENDPOINTS.REFRESH, {
+  //       refresh_token: refreshToken,
+  //     });
+  //     // Chuẩn hóa key cho slice
+  //     return {
+  //       accessToken: response.data.access_token,
+  //       refreshToken: refreshToken, // API không trả refresh_token mới
+  //       user: null
+  //     };
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // },
 
   /**
    * Logout user
    * @returns {Promise} - Response logout
    */
-  logout: async () => {
+  logout: async (id) => {
     try {
-      const response = await axiosInstance.post(API_ENDPOINTS.LOGOUT);
+      // Endpoint là /auth/logout/{id}
+      const response = await axiosInstance.post(`${API_ENDPOINTS.LOGOUT}/${id}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -65,6 +70,19 @@ const authAPI = {
   getProfile: async () => {
     try {
       const response = await axiosInstance.get(API_ENDPOINTS.PROFILE);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Lấy thông tin profile user hiện tại
+   * @returns {Promise} - Trả về thông tin user
+   */
+  getUserById: async (id) => {
+    try {
+      const response = await axiosInstance.get(`${API_ENDPOINTS.GET_USER_BY_ID}/${id}`);
       return response.data;
     } catch (error) {
       throw error;

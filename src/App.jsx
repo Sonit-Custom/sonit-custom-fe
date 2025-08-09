@@ -3,35 +3,45 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Provider } from 'react-redux';
 import { store } from './store/store';
 import { useSelector, useDispatch } from 'react-redux';
-import { autoLogin } from './store/slices/authSlice';
-import Footer from "./components/Footer";
+import { checkAuthStatus } from './store/slices/authSlice';
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 
 // Components
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
+import DashboardLayout from './pages/dashboard/DashboardLayout';
 import Customize from './pages/Customize';
 import Store from './pages/Store';
+import Cart from './pages/Cart';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFailed from './pages/PaymentFailed';
 import PrivateRoute from './routes/PrivateRoute';
+import Register from './pages/Register';
+import ProductDetails from './pages/ProductDetails';
+import UserManagement from './pages/dashboard/UserManagement';
+import OrderManagement from './pages/dashboard/OrderManagement';
+import ProductManagement from './pages/dashboard/ProductManagement';
+import CategoryManagement from './pages/dashboard/CategoryManagement';
+import CollectionManagement from './pages/dashboard/CollectionManagement';
+import RoleManagement from './pages/dashboard/RoleManagement';
+import VoucherManagement from './pages/dashboard/VoucherManagement';
+import Profile from './pages/Profile';
+import AboutUs from './pages/AboutUs';
 
 // App Routes Component
 const AppRoutes = () => {
   const dispatch = useDispatch();
-  const { isAuthenticated, isLoading } = useSelector((state) => state.auth);
+  const { isAuthenticated, isLoading, user } = useSelector((state) => state.auth);
 
-  // Auto-login on app start if refresh token exists
   useEffect(() => {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (refreshToken && !isAuthenticated) {
-      dispatch(autoLogin());
-    }
-  }, [dispatch, isAuthenticated]);
+    dispatch(checkAuthStatus());
+    // eslint-disable-next-line
+  }, [dispatch]);
 
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-black">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -42,17 +52,32 @@ const AppRoutes = () => {
       <Route 
         path="/login" 
         element={
-          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+          isAuthenticated ? <Navigate to="/" replace /> : <Login />
+        } 
+      />
+      <Route 
+        path="/register" 
+        element={
+          isAuthenticated ? <Navigate to="/" replace /> : <Register />
         } 
       />
       <Route 
         path="/dashboard" 
         element={
           <PrivateRoute>
-            <Dashboard />
+            <DashboardLayout />
           </PrivateRoute>
         } 
-      />
+      >
+        <Route index element={<Navigate to="users" replace />} />
+        <Route path="users" element={<UserManagement />} />
+        <Route path="orders" element={<OrderManagement />} />
+        <Route path="products" element={<ProductManagement />} />
+        <Route path="categories" element={<CategoryManagement />} />
+        <Route path="collections" element={<CollectionManagement />} />
+        <Route path="roles" element={<RoleManagement />} />
+        <Route path="vouchers" element={<VoucherManagement />} />
+      </Route>
       <Route 
         path="/customize" 
         element={<Layout><Customize /></Layout>} 
@@ -60,6 +85,30 @@ const AppRoutes = () => {
       <Route 
         path="/store" 
         element={<Layout><Store /></Layout>} 
+      />
+      <Route 
+        path="/product/:id" 
+        element={<Layout><ProductDetails /></Layout>} 
+      />
+      <Route 
+        path="/cart" 
+        element={<Layout><Cart /></Layout>} 
+      />
+      <Route 
+        path="/payment-success" 
+        element={<Layout><PaymentSuccess /></Layout>} 
+      />
+      <Route 
+        path="/payment-failed" 
+        element={<Layout><PaymentFailed /></Layout>} 
+      />
+      <Route 
+        path="/profile" 
+        element={<Profile />} 
+      />
+      <Route 
+        path="/about" 
+        element={<Layout><AboutUs /></Layout>} 
       />
       <Route 
         path="/" 

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { login, clearError } from '../store/slices/authSlice';
+import { login, clearError, fetchUserById } from '../store/slices/authSlice';
 import sonitLogo from '../assets/sonit-logo.png';
+import { jwtDecode } from 'jwt-decode';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -21,7 +22,7 @@ const Login = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/dashboard';
+      const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, location]);
@@ -84,7 +85,10 @@ const Login = () => {
     }
 
     try {
-      await dispatch(login(formData)).unwrap();
+      const resultAction = await dispatch(login(formData)).unwrap();
+      const decodedToken = jwtDecode(resultAction.accessToken);
+      const userId = decodedToken.user_id;
+      await dispatch(fetchUserById(userId));
       // Navigation will be handled by useEffect when isAuthenticated changes
     } catch (error) {
       // Error is already handled by Redux slice
@@ -264,6 +268,10 @@ const Login = () => {
           <div className="text-center mt-6">
             <p className="text-white/60 text-xs">
               Hệ thống quản lý Bi-da chuyên nghiệp
+            </p>
+            <p className="text-white/60 text-xs mt-2">
+              Chưa có tài khoản?{' '}
+              <button className="underline hover:text-white" onClick={() => navigate('/register')}>Đăng ký</button>
             </p>
           </div>
         </div>

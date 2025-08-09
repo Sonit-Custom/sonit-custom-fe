@@ -2,18 +2,23 @@ import React, { useState } from "react";
 import { FiArrowRight, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { FaCrown } from "react-icons/fa";
 import logo from "../assets/sonit-logo.png";
+import p1 from "../assets/p1.jpg";
+import p2 from "../assets/p2.jpg";
+import p3 from "../assets/p3.jpg";
+import p4 from "../assets/p4.jpg";
+import p5 from "../assets/p5.jpg";
+import p6 from "../assets/p6.jpg";
+import p7 from "../assets/p7.jpg";
 
 const SLIDER_IMAGES = [
-  "https://placehold.co/1200x600?text=Billiard+Table+1",
-  "https://placehold.co/1200x600?text=Billiard+Table+2",
-  "https://placehold.co/1200x600?text=Billiard+Table+3",
-  "https://placehold.co/1200x600?text=Billiard+Table+4"
+  p1,
+  p2,
+  p3,
+  p4,
 ];
 
 const PRODUCT_IMAGES = [
-  "https://placehold.co/400x300?text=Product+1",
-  "https://placehold.co/400x300?text=Product+2",
-  "https://placehold.co/400x300?text=Product+3"
+  p5,p6,p7
 ];
 
 const Home = () => {

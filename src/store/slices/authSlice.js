@@ -1,44 +1,83 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import authAPI from '../../services/authAPI';
+import { jwtDecode } from 'jwt-decode';
 
 // Async thunks
 export const login = createAsyncThunk(
   'auth/login',
-  async ({ email, password }, { rejectWithValue }) => {
+  async ({ email, password }, { dispatch, rejectWithValue }) => {
     try {
       const response = await authAPI.login(email, password);
-      return response;
+      return response; // Chỉ trả về tokens, không dispatch fetchUserById ở đây
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message || 'Login failed');
     }
   }
 );
 
-export const refreshToken = createAsyncThunk(
-  'auth/refreshToken',
-  async (_, { getState, rejectWithValue }) => {
+export const fetchUserById = createAsyncThunk(
+  'auth/fetchUserById',
+  async (userId, { dispatch, rejectWithValue }) => {
     try {
-      const { auth } = getState();
-      const response = await authAPI.refreshToken(auth.refreshToken);
+      const response = await authAPI.getUserById(userId);
+      // Fetch cart sau khi user được load thành công
+      if (response && response.user_id) {
+        // Dispatch fetchCart action trực tiếp để tránh circular dependency
+        dispatch({ type: 'cart/fetchCart/pending' });
+        try {
+          const cartAPI = await import('../../services/cartAPI');
+          const cartResponse = await cartAPI.default.getCartByUserId(response.user_id);
+          dispatch({ 
+            type: 'cart/fetchCart/fulfilled', 
+            payload: cartResponse.data || cartResponse 
+          });
+        } catch (cartError) {
+          console.error('Failed to fetch cart:', cartError);
+          dispatch({ 
+            type: 'cart/fetchCart/rejected', 
+            payload: cartError.message 
+          });
+        }
+      }
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message || 'Token refresh failed');
+      return rejectWithValue(error.response?.data?.message || error.message || 'Fetch user failed');
     }
   }
 );
 
-export const autoLogin = createAsyncThunk(
-  'auth/autoLogin',
-  async (_, { getState, rejectWithValue }) => {
+export const logoutUser = createAsyncThunk(
+  'auth/logoutUser',
+  async (_, { getState, rejectWithValue, dispatch }) => {
+    const { auth } = getState();
+    if (!auth.user) return;
     try {
-      const { auth } = getState();
-      if (!auth.refreshToken) {
-        throw new Error('No refresh token available');
-      }
-      const response = await authAPI.refreshToken(auth.refreshToken);
-      return response;
+      await authAPI.logout(auth.user.user_id);
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message || 'Auto login failed');
+      console.error('Logout API failed, proceeding with client-side logout.', error);
+    }
+    // Clear cart khi logout
+    dispatch({ type: 'cart/clearCart' });
+    return;
+  }
+);
+
+export const checkAuthStatus = createAsyncThunk(
+  'auth/checkAuthStatus',
+  async (_, { dispatch, rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        return rejectWithValue('No token found');
+      }
+      const decodedToken = jwtDecode(token);
+      if (decodedToken.exp * 1000 < Date.now()) {
+        return rejectWithValue('Token expired');
+      }
+      // If token is valid, fetch user data.
+      await dispatch(fetchUserById(decodedToken.user_id));
+    } catch (error) {
+      return rejectWithValue('Invalid token');
     }
   }
 );
@@ -48,7 +87,7 @@ const initialState = {
   accessToken: localStorage.getItem('accessToken') || null,
   refreshToken: localStorage.getItem('refreshToken') || null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true, // Bắt đầu với loading true để check auth
   error: null,
 };
 
@@ -86,7 +125,7 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user;
+        // user sẽ được set bởi fetchUserById
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
         state.isAuthenticated = true;
@@ -97,23 +136,19 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      // Refresh Token
-      .addCase(refreshToken.pending, (state) => {
+      // Fetch User By ID
+      .addCase(fetchUserById.pending, (state) => {
         state.isLoading = true;
-        state.error = null;
       })
-      .addCase(refreshToken.fulfilled, (state, action) => {
+      .addCase(fetchUserById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.accessToken = action.payload.accessToken;
-        state.refreshToken = action.payload.refreshToken;
-        state.isAuthenticated = true;
-        localStorage.setItem('accessToken', action.payload.accessToken);
-        localStorage.setItem('refreshToken', action.payload.refreshToken);
+        state.user = action.payload;
+        state.isAuthenticated = true; // <-- Quan trọng
       })
-      .addCase(refreshToken.rejected, (state, action) => {
+      .addCase(fetchUserById.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
-        // If refresh fails, logout the user
+        // Xóa mọi thứ nếu fetch user thất bại
         state.user = null;
         state.accessToken = null;
         state.refreshToken = null;
@@ -121,28 +156,28 @@ const authSlice = createSlice({
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
       })
-      // Auto Login
-      .addCase(autoLogin.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(autoLogin.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload.user;
-        state.accessToken = action.payload.accessToken;
-        state.refreshToken = action.payload.refreshToken;
-        state.isAuthenticated = true;
-        localStorage.setItem('accessToken', action.payload.accessToken);
-        localStorage.setItem('refreshToken', action.payload.refreshToken);
-      })
-      .addCase(autoLogin.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-        // Clear tokens on auto login failure
+      // Logout
+      .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.accessToken = null;
         state.refreshToken = null;
         state.isAuthenticated = false;
+        state.error = null;
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+      })
+      // Check Auth Status
+      .addCase(checkAuthStatus.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(checkAuthStatus.fulfilled, (state) => {
+        // isLoading sẽ được xử lý bởi fetchUserById
+      })
+      .addCase(checkAuthStatus.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.accessToken = null;
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
       });

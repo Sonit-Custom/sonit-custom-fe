@@ -1,11 +1,12 @@
 import React from 'react';
 import { FiShoppingCart } from 'react-icons/fi';
 
-const ProductCard = ({ name, image, price, onClick, onAddToCart }) => {
+const ProductCard = ({ product, name, image, price, onClick, onAddToCart }) => {
+  const prod = product || { name, image, price };
   const handleAddToCart = (e) => {
-    e.stopPropagation(); // Ngăn không cho trigger onClick của card
+    e.stopPropagation();
     if (onAddToCart) {
-      onAddToCart({ name, image, price });
+      onAddToCart(prod);
     }
   };
 
@@ -28,14 +29,16 @@ const ProductCard = ({ name, image, price, onClick, onAddToCart }) => {
       {/* Product Info */}
       <div className="p-3 sm:p-4">
         <h3 className="text-white font-semibold text-base sm:text-lg mb-2 line-clamp-2 group-hover:text-[#e0d6ce] transition-colors">
-          {name}
+          {prod.collection_name || prod.name}
         </h3>
         
+        <p className="text-sm text-white/70 mb-3">Màu: <span className="font-semibold">{prod.color}</span></p>
+
         <div className="flex flex-col gap-2">
           {/* Price */}
           <div className="flex items-center justify-between">
             <span className="text-[#e0d6ce] font-bold text-lg sm:text-xl">
-              ${price.toLocaleString()}
+              ${prod.price.toLocaleString()}
             </span>
           </div>
           
@@ -54,7 +57,7 @@ const ProductCard = ({ name, image, price, onClick, onAddToCart }) => {
             <button 
               onClick={(e) => {
                 e.stopPropagation();
-                if (onClick) onClick();
+                if (onClick) onClick(prod);
               }}
               className="flex-1 bg-transparent border border-[#e0d6ce] text-[#e0d6ce] hover:bg-[#e0d6ce] hover:text-black px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
             >

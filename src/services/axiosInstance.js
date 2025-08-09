@@ -28,49 +28,49 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token refresh
-axiosInstance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  async (error) => {
-    const originalRequest = error.config;
+// // Response interceptor to handle token refresh (TẠM THỜI VÔ HIỆU HÓA)
+// axiosInstance.interceptors.response.use(
+//   (response) => {
+//     return response;
+//   },
+//   async (error) => {
+//     const originalRequest = error.config;
     
-    // If error is 401 and we haven't already tried to refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+//     // If error is 401, not a refresh token request, and we haven't already tried to refresh
+//     if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh-token') {
+//       originalRequest._retry = true;
+
+//       const state = store.getState();
+//       const refreshToken = state.auth.refreshToken;
       
-      const state = store.getState();
-      const refreshToken = state.auth.refreshToken;
-      
-      if (refreshToken) {
-        try {
-          // Try to refresh the token
-          const response = await authAPI.refreshToken(refreshToken);
+//       if (refreshToken) {
+//         try {
+//           // Try to refresh the token
+//           const response = await authAPI.refreshToken(refreshToken);
           
-          // Update tokens in store
-          store.dispatch(setTokens({
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
-          }));
+//           // Update tokens in store
+//           store.dispatch(setTokens({
+//             accessToken: response.accessToken,
+//             refreshToken: response.refreshToken,
+//           }));
           
-          // Retry the original request with new token
-          originalRequest.headers.Authorization = `Bearer ${response.accessToken}`;
-          return axiosInstance(originalRequest);
-        } catch (refreshError) {
-          // If refresh fails, logout the user
-          store.dispatch(logout());
-          return Promise.reject(refreshError);
-        }
-      } else {
-        // No refresh token available, logout
-        store.dispatch(logout());
-        return Promise.reject(error);
-      }
-    }
+//           // Retry the original request with new token
+//           originalRequest.headers.Authorization = `Bearer ${response.accessToken}`;
+//           return axiosInstance(originalRequest);
+//         } catch (refreshError) {
+//           // If refresh fails, logout the user
+//           store.dispatch(logout());
+//           return Promise.reject(refreshError);
+//         }
+//       } else {
+//         // No refresh token available, logout
+//         store.dispatch(logout());
+//         return Promise.reject(error);
+//       }
+//     }
     
-    return Promise.reject(error);
-  }
-);
+//     return Promise.reject(error);
+//   }
+// );
 
 export default axiosInstance; 
