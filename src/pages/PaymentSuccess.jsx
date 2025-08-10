@@ -1,18 +1,9 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FiCheckCircle, FiHome, FiShoppingBag, FiArrowLeft } from 'react-icons/fi';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Get order details from location state or use default values
-  const orderDetails = location.state?.orderDetails || {
-    orderId: 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-    amount: '0',
-    items: 0,
-    date: new Date().toLocaleDateString('vi-VN')
-  };
 
   useEffect(() => {
     // Auto redirect to home after 10 seconds
@@ -31,9 +22,7 @@ const PaymentSuccess = () => {
     navigate('/store');
   };
 
-  const handleViewOrders = () => {
-    navigate('/profile');
-  };
+  
 
   return (
     <>
@@ -77,28 +66,7 @@ const PaymentSuccess = () => {
                 Cảm ơn bạn đã mua sắm tại Sonit. Đơn hàng của bạn đã được xác nhận và sẽ được xử lý sớm nhất.
               </p>
 
-              {/* Order Details */}
-              <div className="bg-white/5 rounded-xl p-6 mb-8">
-                <h2 className="text-xl font-semibold text-white mb-4">Chi tiết đơn hàng</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Mã đơn hàng:</span>
-                    <span className="text-white font-semibold">{orderDetails.orderId}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Tổng tiền:</span>
-                    <span className="text-[#e0d6ce] font-bold text-lg">{`${Number(orderDetails.amount || 0).toLocaleString('vi-VN')} ₫`}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Số sản phẩm:</span>
-                    <span className="text-white font-semibold">{orderDetails.items} sản phẩm</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Ngày đặt:</span>
-                    <span className="text-white font-semibold">{orderDetails.date}</span>
-                  </div>
-                </div>
-              </div>
+              
 
               {/* Next Steps */}
               <div className="bg-green-500/10 border border-green-400/30 rounded-xl p-6 mb-8">

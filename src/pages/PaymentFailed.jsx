@@ -1,19 +1,9 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FiXCircle, FiHome, FiShoppingBag, FiArrowLeft, FiRefreshCw } from 'react-icons/fi';
 
 const PaymentFailed = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Get error details from location state or use default values
-  const errorDetails = location.state?.errorDetails || {
-    errorCode: 'PAYMENT_FAILED',
-    errorMessage: 'Thanh toán không thành công',
-    orderId: 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-    amount: '0',
-    date: new Date().toLocaleDateString('vi-VN')
-  };
 
   useEffect(() => {
     // Auto redirect to home after 15 seconds
@@ -84,33 +74,7 @@ const PaymentFailed = () => {
                 Rất tiếc, thanh toán của bạn không thể hoàn tất. Vui lòng kiểm tra lại thông tin và thử lại.
               </p>
 
-              {/* Error Details */}
-              <div className="bg-red-500/10 border border-red-400/30 rounded-xl p-6 mb-8">
-                <h2 className="text-xl font-semibold text-red-400 mb-4">Chi tiết lỗi</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Mã lỗi:</span>
-                    <span className="text-red-400 font-semibold">{errorDetails.errorCode}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Mã đơn hàng:</span>
-                    <span className="text-white font-semibold">{errorDetails.orderId}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Số tiền:</span>
-                    <span className="text-[#e0d6ce] font-bold text-lg">{`${Number(errorDetails.amount || 0).toLocaleString('vi-VN')} ₫`}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Thời gian:</span>
-                    <span className="text-white font-semibold">{errorDetails.date}</span>
-                  </div>
-                </div>
-                <div className="mt-4 p-4 bg-red-500/20 rounded-lg">
-                  <p className="text-red-300 text-sm">
-                    <strong>Lý do:</strong> {errorDetails.errorMessage}
-                  </p>
-                </div>
-              </div>
+              
 
               {/* Possible Solutions */}
               <div className="bg-white/5 rounded-xl p-6 mb-8">
