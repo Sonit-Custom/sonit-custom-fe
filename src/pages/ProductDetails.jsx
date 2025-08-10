@@ -143,7 +143,7 @@ const ProductDetails = () => {
             <div>
               <span className="inline-block mb-2 px-4 py-1 bg-gradient-to-r from-blue-700 to-blue-400 text-white text-xs font-bold rounded-full uppercase tracking-widest border border-white/20">{product.category_id}</span>
               <h1 className="text-4xl font-extrabold text-white mb-2 drop-shadow-lg leading-tight">{product.collection_name}</h1>
-              <p className="text-[#e0d6ce] text-3xl font-bold mb-4 drop-shadow">${product.price.toLocaleString()}</p>
+              <p className="text-[#e0d6ce] text-3xl font-bold mb-4 drop-shadow">{`${Math.round(Number(product.price) || 0).toLocaleString('vi-VN')} ₫`}</p>
               <div className="flex items-center gap-2 mb-4">
                 <FiClock className="text-[#e0d6ce]" />
                 <span className="text-white/80 text-sm">Giao hàng dự kiến: <b>10-12/10/2024</b></span>

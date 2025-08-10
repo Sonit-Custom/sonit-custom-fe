@@ -98,7 +98,7 @@ const PaymentFailed = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/70">Số tiền:</span>
-                    <span className="text-[#e0d6ce] font-bold text-lg">${errorDetails.amount}</span>
+                    <span className="text-[#e0d6ce] font-bold text-lg">{`${Number(errorDetails.amount || 0).toLocaleString('vi-VN')} ₫`}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/70">Thời gian:</span>

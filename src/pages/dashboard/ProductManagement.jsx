@@ -33,7 +33,7 @@ const ProductManagement = () => {
             <tr key={item.product_id} className="border-b border-white/10 hover:bg-white/5">
               <td className="p-4">{item.product_id}</td>
               <td className="p-4">{item.collection_name}</td>
-              <td className="p-4">${item.price}</td>
+              <td className="p-4">{`${Math.round(Number(item.price) || 0).toLocaleString('vi-VN')} ₫`}</td>
               <td className="p-4">{item.color}</td>
               <td className="p-4">{item.size}</td>
               <td className="p-4">{item.active_status ? 'Active' : 'Inactive'}</td>

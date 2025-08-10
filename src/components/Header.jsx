@@ -191,7 +191,7 @@ const Header = () => {
                           />
                           <div className="flex-1 min-w-0">
                             <h4 className="text-white text-sm font-medium truncate">{item.name}</h4>
-                            <p className="text-[#e0d6ce] text-sm">${item.price.toLocaleString()}</p>
+              <p className="text-[#e0d6ce] text-sm">{`${Math.round(item.price || 0).toLocaleString('vi-VN')} ₫`}</p>
                             <p className="text-white/60 text-xs">Số lượng: {item.quantity}</p>
                           </div>
                           <button 
@@ -207,7 +207,7 @@ const Header = () => {
                     <div className="border-t border-white/20 pt-4">
                       <div className="flex justify-between items-center mb-4">
                         <span className="text-white font-semibold">Tổng cộng:</span>
-                        <span className="text-[#e0d6ce] font-bold text-lg">${cartTotal.toLocaleString()}</span>
+                        <span className="text-[#e0d6ce] font-bold text-lg">{`${Math.round(cartTotal).toLocaleString('vi-VN')} ₫`}</span>
                       </div>
                       <button 
                         onClick={() => {
@@ -303,7 +303,7 @@ const Header = () => {
                   </span>
                 )}
               </div>
-              <span className="text-[#e0d6ce] font-semibold">${cartTotal.toLocaleString()}</span>
+              <span className="text-[#e0d6ce] font-semibold">{`${Math.round(cartTotal).toLocaleString('vi-VN')} ₫`}</span>
             </div>
           </div>
         </div>

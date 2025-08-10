@@ -10,6 +10,16 @@ const paymentAPI = {
     const response = await axiosInstance.post('/payments/create/direct', payload);
     return response.data;
   },
+
+  /**
+   * Tạo yêu cầu thanh toán từ giỏ hàng
+   * @param {Object} payload - { address, items: [{ product_id, quantity }], note, phone_number, user_id }
+   * @returns {Promise<any>}
+   */
+  createCartPayment: async (payload) => {
+    const response = await axiosInstance.post('/payments/create/cart', payload);
+    return response.data;
+  },
 };
 
 export default paymentAPI;

@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FiShoppingCart, FiTrash2, FiPlus, FiMinus, FiArrowLeft, FiCreditCard, FiTruck, FiShield } from 'react-icons/fi';
 import { removeFromCart, fetchCart, addToCart } from '../store/slices/cartSlice';
 
 const Cart = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { items: cartItems, isLoading, error } = useSelector((state) => state.cart);
 
   const [quantities, setQuantities] = useState({});
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   // Initialize quantities from cart items
   useEffect(() => {
@@ -20,18 +22,55 @@ const Cart = () => {
         initialQuantities[item.product_id] = item.quantity || 1;
       });
       setQuantities(initialQuantities);
+      // Ưu tiên chọn theo state truyền vào (buy again) nếu có
+      const presetIds = Array.isArray(location.state?.selectedProductIds) ? location.state.selectedProductIds : null;
+      if (presetIds && presetIds.length > 0) {
+        const idsInCart = cartItems.filter(it => presetIds.includes(it.product_id)).map(it => it.product_id);
+        setSelectedIds(new Set(idsInCart));
+      } else {
+        // Mặc định chọn tất cả khi có dữ liệu
+        setSelectedIds(new Set(cartItems.map(it => it.product_id)));
+      }
     }
-  }, [cartItems]);
+  }, [cartItems, location.state]);
 
-  // Calculate totals
+  // Selection helpers
+  const isSelected = (productId) => selectedIds.has(productId);
+  const toggleSelect = (productId) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(productId)) next.delete(productId); else next.add(productId);
+      return next;
+    });
+  };
+  const selectAll = () => setSelectedIds(new Set(cartItems.map(it => it.product_id)));
+  const unselectAll = () => setSelectedIds(new Set());
+  const deleteSelected = async () => {
+    if (!user || selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    try {
+      // Xóa tuần tự để tránh overload API; có thể Promise.all nếu BE ổn
+      for (const pid of ids) {
+        const payload = { product_id: pid, user_id: user.user_id };
+        // eslint-disable-next-line no-await-in-loop
+        await dispatch(removeFromCart(payload)).unwrap();
+      }
+      setSelectedIds(new Set());
+      dispatch(fetchCart(user.user_id));
+    } catch (err) {
+      alert(`Lỗi khi xóa sản phẩm đã chọn: ${err}`);
+    }
+  };
+
+  // Calculate totals only for selected items
   const subtotal = cartItems.reduce((total, item) => {
+    if (!isSelected(item.product_id)) return total;
     const quantity = quantities[item.product_id] || item.quantity || 1;
     return total + (item.price * quantity);
   }, 0);
 
-  const shipping = subtotal > 500000 ? 0 : (subtotal > 0 ? 50000 : 0); // Free shipping for orders over 500,000 VND
-  const tax = subtotal * 0.1; // 10% tax
-  const total = subtotal + shipping + tax;
+  const shipping = 0; // Free Ship
+  const total = subtotal; // Không VAT
 
   const handleQuantityChange = async (productId, newQuantity) => {
     if (newQuantity < 1) return;
@@ -85,8 +124,20 @@ const Cart = () => {
       navigate('/login');
       return;
     }
-    // TODO: Implement checkout functionality
-    alert('Chức năng thanh toán sẽ được triển khai sớm!');
+    if (selectedIds.size === 0) {
+      alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+      return;
+    }
+    const items = cartItems
+      .filter((it) => isSelected(it.product_id))
+      .map((it) => ({
+        product_id: it.product_id,
+        quantity: quantities[it.product_id] || it.quantity || 1,
+        name: it.name || it.collection_name,
+        image: it.image_url || it.image,
+        price: it.price,
+      }));
+    navigate('/checkout', { state: { items } });
   };
 
   if (isLoading) {
@@ -208,13 +259,25 @@ const Cart = () => {
               {/* Cart Items */}
               <div className="lg:col-span-2">
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">
-                  <div className="p-6 border-b border-white/20">
+                  <div className="p-6 border-b border-white/20 flex items-center justify-between gap-4">
                     <h2 className="text-xl font-bold text-white">Sản phẩm trong giỏ hàng</h2>
+                    <div className="flex items-center gap-2 text-sm">
+                      <button onClick={selectAll} className="px-3 py-2 rounded bg-white/10 hover:bg-white/20 text-white">Chọn tất cả</button>
+                      <button onClick={unselectAll} className="px-3 py-2 rounded bg-white/10 hover:bg-white/20 text-white">Bỏ chọn</button>
+                      <button onClick={deleteSelected} className="px-3 py-2 rounded bg-red-500/20 hover:bg-red-500/30 text-red-200 disabled:opacity-50" disabled={selectedIds.size === 0}>Xóa đã chọn</button>
+                    </div>
                   </div>
                   <div className="divide-y divide-white/20">
                     {cartItems.map((item) => (
                       <div key={item.product_id} className="p-6">
                         <div className="flex items-center gap-4">
+                          <input
+                            type="checkbox"
+                            checked={isSelected(item.product_id)}
+                            onChange={() => toggleSelect(item.product_id)}
+                            className="w-5 h-5 accent-[#e0d6ce]"
+                            aria-label="Chọn sản phẩm"
+                          />
                           <img
                             src={item.image_url || item.image}
                             alt={item.name || item.collection_name}
@@ -228,7 +291,7 @@ const Cart = () => {
                               {item.name || item.collection_name || 'Sản phẩm không tên'}
                             </h3>
                             <p className="text-[#e0d6ce] text-lg font-bold">
-                              ${(item.price || 0).toLocaleString()}
+                              {`${Math.round(item.price || 0).toLocaleString('vi-VN')} ₫`}
                             </p>
                             <div className="flex items-center gap-4 mt-2">
                               <div className="flex items-center gap-2">
@@ -260,7 +323,7 @@ const Cart = () => {
                           </div>
                           <div className="text-right">
                             <p className="text-white font-bold text-lg">
-                              ${((item.price || 0) * (quantities[item.product_id] || 1)).toLocaleString()}
+                              {`${Math.round((item.price || 0) * (quantities[item.product_id] || 1)).toLocaleString('vi-VN')} ₫`}
                             </p>
                           </div>
                         </div>
@@ -273,28 +336,23 @@ const Cart = () => {
               {/* Order Summary */}
               <div className="lg:col-span-1">
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 sticky top-8">
-                  <h2 className="text-xl font-bold text-white mb-6">Tóm tắt đơn hàng</h2>
+                  <h2 className="text-xl font-bold text-white mb-2">Tóm tắt đơn hàng</h2>
+                  <p className="text-white/60 mb-4">Đã chọn: {selectedIds.size} / {cartItems.length}</p>
                   
                   {/* Order Details */}
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between items-center">
                       <span className="text-white/80">Tạm tính:</span>
-                      <span className="text-white font-semibold">${subtotal.toLocaleString()}</span>
+                      <span className="text-white font-semibold">{`${Math.round(subtotal).toLocaleString('vi-VN')} ₫`}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-white/80">Phí vận chuyển:</span>
-                      <span className="text-white font-semibold">
-                        {shipping === 0 ? 'Miễn phí' : `$${shipping.toLocaleString()}`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-white/80">Thuế (10%):</span>
-                      <span className="text-white font-semibold">${tax.toLocaleString()}</span>
+                      <span className="text-white font-semibold">Miễn phí</span>
                     </div>
                     <div className="border-t border-white/20 pt-4">
                       <div className="flex justify-between items-center">
                         <span className="text-white font-bold text-lg">Tổng cộng:</span>
-                        <span className="text-[#e0d6ce] font-bold text-2xl">${total.toLocaleString()}</span>
+                        <span className="text-[#e0d6ce] font-bold text-2xl">{`${Math.round(total).toLocaleString('vi-VN')} ₫`}</span>
                       </div>
                     </div>
                   </div>
@@ -305,12 +363,7 @@ const Cart = () => {
                       <FiTruck className="text-[#e0d6ce] text-xl" />
                       <span className="text-white font-semibold">Thông tin vận chuyển</span>
                     </div>
-                    <p className="text-white/70 text-sm">
-                      {subtotal > 500000 
-                        ? '🎉 Giao hàng miễn phí cho đơn hàng của bạn!' 
-                        : `Thêm $${(500000 - subtotal).toLocaleString()} để được giao hàng miễn phí`
-                      }
-                    </p>
+                    <p className="text-white/70 text-sm">Miễn phí vận chuyển (Free Ship)</p>
                   </div>
 
                   {/* Security Info */}
@@ -327,11 +380,11 @@ const Cart = () => {
                   {/* Checkout Button */}
                   <button
                     onClick={handleCheckout}
-                    className="w-full bg-[#e0d6ce] hover:bg-[#d1c2b2] text-black py-4 px-6 rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-3"
-                    disabled={cartItems.length === 0}
+                    className="w-full bg-[#e0d6ce] hover:bg-[#d1c2b2] text-black py-4 px-6 rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-3 disabled:opacity-60"
+                    disabled={cartItems.length === 0 || selectedIds.size === 0}
                   >
                     <FiCreditCard className="text-xl" />
-                    {cartItems.length === 0 ? 'Giỏ hàng trống' : 'Thanh toán ngay'}
+                    {cartItems.length === 0 ? 'Giỏ hàng trống' : selectedIds.size === 0 ? 'Chọn sản phẩm để thanh toán' : 'Thanh toán ngay'}
                   </button>
 
                   {/* Continue Shopping */}

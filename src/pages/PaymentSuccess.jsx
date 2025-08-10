@@ -87,7 +87,7 @@ const PaymentSuccess = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/70">Tổng tiền:</span>
-                    <span className="text-[#e0d6ce] font-bold text-lg">${orderDetails.amount}</span>
+                    <span className="text-[#e0d6ce] font-bold text-lg">{`${Number(orderDetails.amount || 0).toLocaleString('vi-VN')} ₫`}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/70">Số sản phẩm:</span>

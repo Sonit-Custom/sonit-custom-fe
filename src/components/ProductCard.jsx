@@ -38,7 +38,7 @@ const ProductCard = ({ product, name, image, price, onClick, onAddToCart }) => {
           {/* Price */}
           <div className="flex items-center justify-between">
             <span className="text-[#e0d6ce] font-bold text-lg sm:text-xl">
-              ${prod.price.toLocaleString()}
+              {`${Math.round(Number(prod.price) || 0).toLocaleString('vi-VN')} ₫`}
             </span>
           </div>
           

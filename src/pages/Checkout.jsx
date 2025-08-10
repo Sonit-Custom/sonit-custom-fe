@@ -8,8 +8,10 @@ const Checkout = () => {
   const location = useLocation();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
 
-  // Expected location.state: { product: { product_id, collection_name, price, image }, quantity }
-  const { product, quantity: initialQty } = location.state || {};
+  // location.state có thể là:
+  // - { product, quantity } từ ProductDetails (thanh toán trực tiếp 1 SP)
+  // - { items: [{ product_id, quantity, name, image, price }] } từ Cart (thanh toán nhiều SP)
+  const { product, quantity: initialQty, items: cartItemsFromState } = location.state || {};
   const quantity = initialQty || 1;
   const [address, setAddress] = useState('');
   const [note, setNote] = useState('');
@@ -17,10 +19,16 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
 
   const subtotal = useMemo(() => {
+    if (Array.isArray(cartItemsFromState) && cartItemsFromState.length > 0) {
+      return cartItemsFromState.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 1), 0);
+    }
     if (!product) return 0;
     const price = Number(product.price) || 0;
     return price * quantity;
-  }, [product, quantity]);
+  }, [product, quantity, cartItemsFromState]);
+
+  const shipping = useMemo(() => 0, []); // Free Ship
+  const total = useMemo(() => subtotal, [subtotal]); // Không VAT
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -28,7 +36,7 @@ const Checkout = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  if (!product) {
+  if (!product && (!Array.isArray(cartItemsFromState) || cartItemsFromState.length === 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-black">
         <div className="bg-white/10 border border-white/20 rounded-2xl p-8 text-white">
@@ -47,17 +55,31 @@ const Checkout = () => {
     }
     setLoading(true);
     try {
-      const payload = {
-        address,
-        note,
-        phone_number: phoneNumber,
-        product: {
-          product_id: product.product_id,
-          quantity: Number(quantity) || 1,
-        },
-        user_id: user.user_id,
-      };
-      const res = await paymentAPI.createDirectPayment(payload);
+      let res;
+      if (Array.isArray(cartItemsFromState) && cartItemsFromState.length > 0) {
+        const payload = {
+          address,
+          note,
+          phone_number: phoneNumber,
+          items: cartItemsFromState.map((it) => ({ product_id: it.product_id, quantity: Number(it.quantity) || 1 })),
+          user_id: user.user_id,
+          currency: 'VND',
+        };
+        res = await paymentAPI.createCartPayment(payload);
+      } else {
+        const payload = {
+          address,
+          note,
+          phone_number: phoneNumber,
+          product: {
+            product_id: product.product_id,
+            quantity: Number(quantity) || 1,
+          },
+          user_id: user.user_id,
+          currency: 'VND',
+        };
+        res = await paymentAPI.createDirectPayment(payload);
+      }
       // Backend trả về { message: "{https://pay.payos.vn/web/...}" }
       const message = res?.message ?? res?.data?.message ?? '';
       const match = String(message).match(/https?:\/\/[^\s}]+/);
@@ -81,7 +103,7 @@ const Checkout = () => {
       <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Left: Form */}
         <div className="lg:col-span-3 bg-white/10 border border-white/20 rounded-2xl p-6">
-          <h1 className="text-2xl font-bold text-white mb-6">Checkout</h1>
+          <h1 className="text-2xl font-bold text-white mb-6">Thanh toán</h1>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-white/80 mb-2">Địa chỉ</label>
@@ -127,29 +149,47 @@ const Checkout = () => {
         {/* Right: Order Summary */}
         <div className="lg:col-span-2 bg-white/10 border border-white/20 rounded-2xl p-6 h-fit">
           <h2 className="text-xl font-semibold text-white mb-4">Đơn hàng</h2>
-          <div className="flex items-center gap-4 mb-4">
-            <img src={product.image} alt={product.collection_name} className="w-20 h-20 rounded-xl object-cover border border-white/20" />
-            <div className="flex-1">
-              <p className="text-white font-medium">{product.collection_name}</p>
-              <p className="text-white/70 text-sm">Mã: {product.product_id}</p>
+          {Array.isArray(cartItemsFromState) && cartItemsFromState.length > 0 ? (
+            <div className="space-y-3 mb-2">
+              {cartItemsFromState.map((it) => (
+                <div key={it.product_id} className="flex items-center gap-4">
+                  <img src={it.image} alt={it.name} className="w-16 h-16 rounded-xl object-cover border border-white/20" />
+                  <div className="flex-1">
+                    <p className="text-white font-medium">{it.name}</p>
+                    <p className="text-white/70 text-xs">Mã: {it.product_id}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[#e0d6ce] font-semibold text-sm">{`${Math.round(Number(it.price) || 0).toLocaleString('vi-VN')} ₫`}</p>
+                    <p className="text-white/60 text-xs">x{it.quantity}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="text-right">
-              <p className="text-[#e0d6ce] font-bold">${Number(product.price).toLocaleString()}</p>
-              <p className="text-white/60 text-sm">x{quantity}</p>
+          ) : (
+            <div className="flex items-center gap-4 mb-4">
+              <img src={product.image} alt={product.collection_name} className="w-20 h-20 rounded-xl object-cover border border-white/20" />
+              <div className="flex-1">
+                <p className="text-white font-medium">{product.collection_name}</p>
+                <p className="text-white/70 text-sm">Mã: {product.product_id}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[#e0d6ce] font-bold">{`${Math.round(Number(product.price) || 0).toLocaleString('vi-VN')} ₫`}</p>
+                <p className="text-white/60 text-sm">x{quantity}</p>
+              </div>
             </div>
-          </div>
+          )}
           <div className="border-t border-white/10 pt-4 mt-4 space-y-2 text-white/80">
             <div className="flex justify-between">
               <span>Tạm tính</span>
-              <span className="text-white">${subtotal.toLocaleString()}</span>
+              <span className="text-white">{`${Math.round(subtotal).toLocaleString('vi-VN')} ₫`}</span>
             </div>
             <div className="flex justify-between">
               <span>Phí vận chuyển</span>
-              <span className="text-white">$0</span>
+              <span className="text-white">Miễn phí</span>
             </div>
             <div className="flex justify-between font-semibold text-white pt-2 border-t border-white/10 mt-2">
               <span>Tổng</span>
-              <span>${subtotal.toLocaleString()}</span>
+              <span>{`${Math.round(total).toLocaleString('vi-VN')} ₫`}</span>
             </div>
           </div>
         </div>
