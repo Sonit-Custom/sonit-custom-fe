@@ -171,7 +171,27 @@ const ProductDetails = () => {
                 {isCartLoading ? 'Đang thêm...' : <>Thêm vào giỏ hàng <FiHeart className="ml-2 text-2xl text-[#183F8F]" /></>}
               </button>
               {cartError && <p className="text-red-400 text-center mt-2">{cartError}</p>}
-              <button className="w-full bg-gradient-to-r from-[#183F8F] to-black hover:from-black hover:to-[#183F8F] text-white py-5 rounded-3xl font-bold text-xl shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 border border-[#183F8F] flex items-center justify-center gap-2 mb-2">
+              <button
+                onClick={() => {
+                  if (!user) {
+                    alert('Vui lòng đăng nhập để mua ngay!');
+                    navigate('/login');
+                    return;
+                  }
+                  navigate('/checkout', {
+                    state: {
+                      product: {
+                        product_id: product.product_id,
+                        collection_name: product.collection_name,
+                        price: product.price,
+                        image: product.image,
+                      },
+                      quantity,
+                    },
+                  });
+                }}
+                className="w-full bg-gradient-to-r from-[#183F8F] to-black hover:from-black hover:to-[#183F8F] text-white py-5 rounded-3xl font-bold text-xl shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 border border-[#183F8F] flex items-center justify-center gap-2 mb-2"
+              >
                 Mua ngay
               </button>
             </div>

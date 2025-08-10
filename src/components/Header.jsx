@@ -132,6 +132,9 @@ const Header = () => {
                     <p className="text-white/70 text-sm">{user?.email}</p>
                   </div>
                 </div>
+                <button onClick={() => { navigate('/orders'); setProfileOpen(false); }} className="w-full flex items-center justify-center gap-2 py-2 mb-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors">
+                  Đơn hàng của tôi
+                </button>
                 {user?.role_id === 'R001' && (
                   <button onClick={() => { navigate('/dashboard'); setProfileOpen(false); }} className="w-full flex items-center justify-center gap-2 py-2 mb-2 bg-blue-500/20 hover:bg-blue-500/40 text-white rounded-lg transition-colors">
                     Dashboard
@@ -274,6 +277,9 @@ const Header = () => {
                     <p className="text-white/70 text-xs">{user?.email}</p>
                   </div>
                 </div>
+                <button onClick={() => { navigate('/orders'); setOpen(false); }} className="w-full flex items-center justify-center gap-2 py-2 mb-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors">
+                  Đơn hàng của tôi
+                </button>
                 {user?.role_id === 'R001' && (
                   <button onClick={() => { navigate('/dashboard'); setOpen(false); }} className="w-full flex items-center justify-center gap-2 py-2 mb-2 bg-blue-500/20 hover:bg-blue-500/40 text-white rounded-lg transition-colors">
                     Dashboard

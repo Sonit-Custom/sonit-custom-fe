@@ -18,6 +18,8 @@ import PaymentFailed from './pages/PaymentFailed';
 import PrivateRoute from './routes/PrivateRoute';
 import Register from './pages/Register';
 import ProductDetails from './pages/ProductDetails';
+import Checkout from './pages/Checkout';
+import MyOrders from './pages/MyOrders';
 import UserManagement from './pages/dashboard/UserManagement';
 import OrderManagement from './pages/dashboard/OrderManagement';
 import ProductManagement from './pages/dashboard/ProductManagement';
@@ -91,15 +93,23 @@ const AppRoutes = () => {
         element={<Layout><ProductDetails /></Layout>} 
       />
       <Route 
+        path="/checkout" 
+        element={<Layout><Checkout /></Layout>} 
+      />
+      <Route 
         path="/cart" 
         element={<Layout><Cart /></Layout>} 
       />
       <Route 
-        path="/payment-success" 
+        path="/orders" 
+        element={<Layout><MyOrders /></Layout>} 
+      />
+      <Route 
+        path="/payment-success/:id" 
         element={<Layout><PaymentSuccess /></Layout>} 
       />
       <Route 
-        path="/payment-failed" 
+        path="/payment-failed/:id" 
         element={<Layout><PaymentFailed /></Layout>} 
       />
       <Route 
