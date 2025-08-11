@@ -37,7 +37,6 @@ const Store = () => {
     };
     dispatch(addToCart(payload)).unwrap()
       .then(() => {
-        alert(`Đã thêm "${product.collection_name}" vào giỏ hàng!`);
         dispatch(fetchCart(user.user_id)); // Fetch lại cart để cập nhật UI
       })
       .catch((err) => alert(`Lỗi: ${err}`));

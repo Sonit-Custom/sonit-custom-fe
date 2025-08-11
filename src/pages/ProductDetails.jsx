@@ -79,7 +79,6 @@ const ProductDetails = () => {
     };
     dispatch(addToCart(payload)).unwrap()
       .then(() => {
-        alert('Thêm vào giỏ hàng thành công!');
         dispatch(fetchCart(user.user_id)); // Fetch lại cart để cập nhật UI
       })
       .catch((err) => alert(`Lỗi: ${err}`));
