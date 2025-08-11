@@ -2,6 +2,7 @@ import axiosInstance from './axiosInstance';
 
 const API_ENDPOINTS = {
   GET_ALL_PRODUCTS: '/products/customer-ui',
+  GET_PRODUCT: '/products',
 };
 
 const productAPI = {
@@ -25,7 +26,7 @@ const productAPI = {
    */
   getProductById: async (id) => {
     try {
-      const response = await axiosInstance.get(`${API_ENDPOINTS.GET_ALL_PRODUCTS}/${id}`);
+      const response = await axiosInstance.get(`${API_ENDPOINTS.GET_PRODUCT}/${id}`);
       return response.data;
     } catch (error) {
       throw error;
