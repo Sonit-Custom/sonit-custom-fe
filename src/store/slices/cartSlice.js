@@ -13,6 +13,20 @@ export const addToCart = createAsyncThunk(
   }
 );
 
+export const editCartItem = createAsyncThunk(
+  'cart/editItem',
+  async (payload, { rejectWithValue }) => {
+    try {
+      const response = await cartAPI.editCartItem(payload);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to edit cart item'
+      );
+    }
+  }
+);
+
 export const fetchCart = createAsyncThunk(
   'cart/fetchCart',
   async (userId, { rejectWithValue }) => {
@@ -69,6 +83,18 @@ const cartSlice = createSlice({
         state.lastAdded = action.payload; // Lưu sản phẩm vừa thêm
       })
       .addCase(addToCart.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Edit cart item quantity
+      .addCase(editCartItem.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(editCartItem.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(editCartItem.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })

@@ -4,7 +4,7 @@ import logo from "../assets/sonit-logo.png";
 import { FiShoppingCart, FiMenu, FiX, FiTrash2, FiLogOut } from "react-icons/fi";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutUser } from "../store/slices/authSlice";
-import { fetchCart, removeFromCart } from "../store/slices/cartSlice";
+import { fetchCart, removeFromCart, editCartItem } from "../store/slices/cartSlice";
 
 const menu = [
   { label: "STORE", href: "/store" },
@@ -18,6 +18,7 @@ const Header = () => {
   const [open, setOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [quickQuantities, setQuickQuantities] = useState({});
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -25,6 +26,16 @@ const Header = () => {
 
   const cartTotal = Array.isArray(cartItems) ? cartItems.reduce((total, item) => total + (item.price * item.quantity), 0) : 0;
   const cartItemCount = Array.isArray(cartItems) ? cartItems.length : 0;
+
+  useEffect(() => {
+    if (Array.isArray(cartItems)) {
+      const initial = {};
+      cartItems.forEach((it) => {
+        initial[it.product_id] = it.quantity || 1;
+      });
+      setQuickQuantities(initial);
+    }
+  }, [cartItems]);
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -79,6 +90,56 @@ const Header = () => {
       .catch(err => {
         alert(`Lỗi khi xóa sản phẩm: ${err}`);
       });
+  };
+
+  const commitQuantityChange = async (productId, newQuantity) => {
+    if (!user) return;
+    const qty = Math.max(1, Number.isFinite(newQuantity) ? newQuantity : 1);
+    try {
+      await dispatch(editCartItem({
+        quantity: qty,
+        request: { product_id: productId, user_id: user.user_id },
+      })).unwrap();
+      dispatch(fetchCart(user.user_id));
+    } catch (err) {
+      alert(`Lỗi khi cập nhật số lượng: ${err}`);
+      setQuickQuantities((prev) => ({
+        ...prev,
+        [productId]: cartItems.find(i => i.product_id === productId)?.quantity || 1,
+      }));
+    }
+  };
+
+  const decQuantity = (productId) => {
+    const current = quickQuantities[productId] ?? cartItems.find(i => i.product_id === productId)?.quantity ?? 1;
+    if (current <= 1) return;
+    const next = current - 1;
+    setQuickQuantities((p) => ({ ...p, [productId]: next }));
+    commitQuantityChange(productId, next);
+  };
+
+  const incQuantity = (productId) => {
+    const current = quickQuantities[productId] ?? cartItems.find(i => i.product_id === productId)?.quantity ?? 1;
+    const next = current + 1;
+    setQuickQuantities((p) => ({ ...p, [productId]: next }));
+    commitQuantityChange(productId, next);
+  };
+
+  const onQtyInputChange = (productId, value) => {
+    const parsed = parseInt(value, 10);
+    if (Number.isNaN(parsed)) {
+      setQuickQuantities((p) => ({ ...p, [productId]: '' }));
+    } else {
+      setQuickQuantities((p) => ({ ...p, [productId]: parsed }));
+    }
+  };
+
+  const onQtyInputCommit = (productId) => {
+    const current = quickQuantities[productId];
+    const fallback = cartItems.find(i => i.product_id === productId)?.quantity || 1;
+    const valid = Math.max(1, Number.isFinite(current) ? current : fallback);
+    setQuickQuantities((p) => ({ ...p, [productId]: valid }));
+    commitQuantityChange(productId, valid);
   };
 
   return (
@@ -192,7 +253,33 @@ const Header = () => {
                           <div className="flex-1 min-w-0">
                             <h4 className="text-white text-sm font-medium truncate">{item.name}</h4>
               <p className="text-[#e0d6ce] text-sm">{`${Math.round(item.price || 0).toLocaleString('vi-VN')} ₫`}</p>
-                            <p className="text-white/60 text-xs">Số lượng: {item.quantity}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <button
+                                onClick={() => decQuantity(item.product_id)}
+                                className="w-6 h-6 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors flex items-center justify-center text-xs"
+                                aria-label="Giảm số lượng"
+                                disabled={(quickQuantities[item.product_id] ?? item.quantity ?? 1) <= 1}
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                min={1}
+                                value={quickQuantities[item.product_id] ?? item.quantity ?? 1}
+                                onChange={(e) => onQtyInputChange(item.product_id, e.target.value)}
+                                onBlur={() => onQtyInputCommit(item.product_id)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+                                className="w-12 text-center py-0.5 rounded bg-white/10 text-white text-xs focus:outline-none focus:ring-1 focus:ring-white/30"
+                                aria-label="Số lượng"
+                              />
+                              <button
+                                onClick={() => incQuantity(item.product_id)}
+                                className="w-6 h-6 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors flex items-center justify-center text-xs"
+                                aria-label="Tăng số lượng"
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                           <button 
                             onClick={() => handleRemoveFromCart(item.product_id)}

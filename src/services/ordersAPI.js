@@ -47,6 +47,16 @@ const ordersAPI = {
     const { data } = await ordersAPI.getOrdersByUserIdPage(userId, 1);
     return data;
   },
+
+  /**
+   * Cập nhật trạng thái đơn hàng
+   * @param {{ order_id: string, status: string }} payload
+   * @returns {Promise<any>}
+   */
+  updateOrderStatus: async (payload) => {
+    const response = await axiosInstance.put('/orders/update', payload);
+    return response.data;
+  },
 };
 
 export default ordersAPI;

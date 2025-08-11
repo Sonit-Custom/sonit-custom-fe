@@ -1,7 +1,7 @@
 import axiosInstance from './axiosInstance';
 
 const API_ENDPOINTS = {
-  GET_ALL_PRODUCTS: '/products',
+  GET_ALL_PRODUCTS: '/products/customer-ui',
 };
 
 const productAPI = {

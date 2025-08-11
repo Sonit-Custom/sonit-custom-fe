@@ -4,6 +4,7 @@ const API_ENDPOINTS = {
   ADD_ITEM: '/carts/item/add',
   GET_CART: '/carts',
   REMOVE_ITEM: '/carts/item/remove',
+  EDIT_ITEM: '/carts/item/edit',
 };
 
 const cartAPI = {
@@ -45,6 +46,20 @@ const cartAPI = {
       // Using DELETE method for removing an item is more conventional.
       // The payload is passed in the 'data' property of the config object.
       const response = await axiosInstance.delete(API_ENDPOINTS.REMOVE_ITEM, { data: payload });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Chỉnh sửa số lượng sản phẩm trong giỏ hàng
+   * @param {object} payload - { quantity, request: { product_id, user_id } }
+   * @returns {Promise}
+   */
+  editCartItem: async (payload) => {
+    try {
+      const response = await axiosInstance.put(API_ENDPOINTS.EDIT_ITEM, payload);
       return response.data;
     } catch (error) {
       throw error;

@@ -62,6 +62,32 @@ const MyOrders = () => {
     return allOrders.filter((o) => o.status === activeTab);
   }, [pagedOrders, allOrders, activeTab]);
 
+  const refreshOrdersAfterUpdate = async () => {
+    if (!user?.user_id) return;
+    try {
+      const [resPage, all] = await Promise.all([
+        ordersAPI.getOrdersByUserIdPage(user.user_id, pageNumber),
+        ordersAPI.getAllOrdersByUserId(user.user_id),
+      ]);
+      setPagedOrders(resPage.data);
+      setPageNumber(resPage.page_number);
+      setTotalPages(resPage.total_pages);
+      setAllOrders(Array.isArray(all) ? all : []);
+    } catch (err) {
+      // không chặn UI nếu refresh lỗi
+    }
+  };
+
+  const handleMarkDelivered = async (order) => {
+    if (!user?.user_id) return;
+    try {
+      await ordersAPI.updateOrderStatus({ order_id: order.order_id, status: 'DELIVERED' });
+      await refreshOrdersAfterUpdate();
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || 'Không thể cập nhật trạng thái');
+    }
+  };
+
   const handleBuyAgain = async (order) => {
     if (!user?.user_id) {
       navigate('/login');
@@ -165,6 +191,16 @@ const MyOrders = () => {
                 </div>
                 <div className="mt-2 text-white/60 text-xs">Ngày đặt: {new Date(order.created_at).toLocaleString('vi-VN')}</div>
               </div>
+              {order.status === 'SHIPPED' && (
+                <div className="mt-3 flex justify-end">
+                  <button
+                    onClick={() => handleMarkDelivered(order)}
+                    className="px-4 py-2 rounded-lg bg-green-500/20 text-green-200 font-semibold hover:bg-green-500/30"
+                  >
+                    Đã Nhận Hàng
+                  </button>
+                </div>
+              )}
               {order.status === 'CANCELLED' && (
                 <div className="mt-3 flex justify-end">
                   <button

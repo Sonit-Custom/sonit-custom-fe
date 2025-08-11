@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { FiShoppingCart, FiTrash2, FiPlus, FiMinus, FiArrowLeft, FiCreditCard, FiTruck, FiShield } from 'react-icons/fi';
-import { removeFromCart, fetchCart, addToCart } from '../store/slices/cartSlice';
+import { removeFromCart, fetchCart, editCartItem } from '../store/slices/cartSlice';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -90,7 +90,7 @@ const Cart = () => {
             user_id: user.user_id,
           },
         };
-        await dispatch(addToCart(payload)).unwrap();
+        await dispatch(editCartItem(payload)).unwrap();
         dispatch(fetchCart(user.user_id));
       } catch (error) {
         console.error('Failed to update quantity:', error);
@@ -101,6 +101,22 @@ const Cart = () => {
         }));
       }
     }
+  };
+
+  const handleQuantityInputChange = (productId, value) => {
+    const parsed = parseInt(value, 10);
+    if (Number.isNaN(parsed)) {
+      setQuantities(prev => ({ ...prev, [productId]: '' }));
+    } else {
+      setQuantities(prev => ({ ...prev, [productId]: parsed }));
+    }
+  };
+
+  const commitQuantityInput = (productId) => {
+    const current = quantities[productId];
+    const fallback = cartItems.find(i => i.product_id === productId)?.quantity || 1;
+    const valid = Math.max(1, Number.isFinite(current) ? current : fallback);
+    handleQuantityChange(productId, valid);
   };
 
   const handleRemoveItem = (productId) => {
@@ -302,9 +318,20 @@ const Cart = () => {
                                 >
                                   <FiMinus className="text-sm" />
                                 </button>
-                                <span className="text-white font-semibold w-8 text-center">
-                                  {quantities[item.product_id] || 1}
-                                </span>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={quantities[item.product_id] ?? 1}
+                                  onChange={(e) => handleQuantityInputChange(item.product_id, e.target.value)}
+                                  onBlur={() => commitQuantityInput(item.product_id)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.currentTarget.blur();
+                                    }
+                                  }}
+                                  className="w-14 text-center py-1 rounded bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+                                  aria-label="Số lượng"
+                                />
                                 <button
                                   onClick={() => handleQuantityChange(item.product_id, (quantities[item.product_id] || 1) + 1)}
                                   className="w-8 h-8 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors flex items-center justify-center"
