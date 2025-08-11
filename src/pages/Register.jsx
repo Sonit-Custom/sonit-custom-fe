@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import authAPI from '../services/authAPI';
 import sonitLogo from '../assets/sonit-logo.png';
 
 const genderOptions = [
@@ -80,12 +81,22 @@ const Register = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    // TODO: Gọi API đăng ký ở đây
-    alert('Đăng ký thành công!');
-    navigate('/login');
+    try {
+      const payload = {
+        email: formData.email,
+        full_name: formData.fullName,
+        gender: formData.gender,
+        password: formData.password,
+      };
+      await authAPI.register(payload);
+      navigate('/waiting-activation', { state: { email: formData.email } });
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Đăng ký thất bại';
+      setErrors((prev) => ({ ...prev, submit: message }));
+    }
   };
 
   const handleBackToLogin = () => {
@@ -274,7 +285,10 @@ const Register = () => {
                 Đăng ký
               </div>
             </button>
-          </form>
+            </form>
+            {errors.submit && (
+              <div className="mt-4 text-center text-red-300 text-sm">{errors.submit}</div>
+            )}
           <div className="text-center mt-6">
             <p className="text-white/60 text-xs">
               Đã có tài khoản?{' '}

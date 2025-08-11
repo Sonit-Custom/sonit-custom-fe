@@ -29,6 +29,7 @@ import RoleManagement from './pages/dashboard/RoleManagement';
 import VoucherManagement from './pages/dashboard/VoucherManagement';
 import Profile from './pages/Profile';
 import AboutUs from './pages/AboutUs';
+import WaitingActivation from './pages/WaitingActivation';
 
 // App Routes Component
 const AppRoutes = () => {
@@ -62,6 +63,10 @@ const AppRoutes = () => {
         element={
           isAuthenticated ? <Navigate to="/" replace /> : <Register />
         } 
+      />
+      <Route 
+        path="/waiting-activation" 
+        element={<WaitingActivation />} 
       />
       <Route 
         path="/dashboard" 

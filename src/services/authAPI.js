@@ -7,6 +7,7 @@ const API_ENDPOINTS = {
   LOGOUT: '/auth/logout',
   PROFILE: '/auth/profile',
   GET_USER_BY_ID: '/users', // base path
+  CREATE_USER: '/users/create',
 };
 
 const authAPI = {
@@ -57,6 +58,20 @@ const authAPI = {
     try {
       // Endpoint là /auth/logout/{id}
       const response = await axiosInstance.post(`${API_ENDPOINTS.LOGOUT}/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Đăng ký tài khoản mới
+   * @param {{ email: string, full_name: string, gender: 'male'|'female'|'other', password: string }} payload
+   * @returns {Promise<any>} - Thông tin kết quả đăng ký
+   */
+  register: async (payload) => {
+    try {
+      const response = await axiosInstance.post(API_ENDPOINTS.CREATE_USER, payload);
       return response.data;
     } catch (error) {
       throw error;
