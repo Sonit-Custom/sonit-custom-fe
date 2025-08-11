@@ -27,6 +27,7 @@ import CategoryManagement from './pages/dashboard/CategoryManagement';
 import CollectionManagement from './pages/dashboard/CollectionManagement';
 import RoleManagement from './pages/dashboard/RoleManagement';
 import VoucherManagement from './pages/dashboard/VoucherManagement';
+import Analytics from './pages/dashboard/Analytics';
 import Profile from './pages/Profile';
 import AboutUs from './pages/AboutUs';
 import WaitingActivation from './pages/WaitingActivation';
@@ -76,7 +77,8 @@ const AppRoutes = () => {
           </PrivateRoute>
         } 
       >
-        <Route index element={<Navigate to="users" replace />} />
+        <Route index element={<Navigate to="analytics" replace />} />
+        <Route path="analytics" element={<Analytics />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="orders" element={<OrderManagement />} />
         <Route path="products" element={<ProductManagement />} />

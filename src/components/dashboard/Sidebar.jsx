@@ -1,8 +1,9 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { FiUsers, FiBox, FiGrid, FiLayers, FiKey, FiTag, FiPackage, FiHome } from 'react-icons/fi';
+import { FiUsers, FiBox, FiGrid, FiLayers, FiKey, FiTag, FiPackage, FiHome, FiBarChart2 } from 'react-icons/fi';
 
 const navLinks = [
+  { to: 'analytics', text: 'Phân tích', icon: <FiBarChart2 /> },
   { to: 'users', text: 'Quản lý Users', icon: <FiUsers /> },
   { to: 'orders', text: 'Quản lý Orders', icon: <FiBox /> },
   { to: 'products', text: 'Quản lý Products', icon: <FiPackage /> },
