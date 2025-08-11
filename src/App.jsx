@@ -28,6 +28,7 @@ import CollectionManagement from './pages/dashboard/CollectionManagement';
 import RoleManagement from './pages/dashboard/RoleManagement';
 import VoucherManagement from './pages/dashboard/VoucherManagement';
 import Analytics from './pages/dashboard/Analytics';
+import PaymentManagement from './pages/dashboard/PaymentManagement';
 import Profile from './pages/Profile';
 import AboutUs from './pages/AboutUs';
 import WaitingActivation from './pages/WaitingActivation';
@@ -86,6 +87,7 @@ const AppRoutes = () => {
         <Route path="collections" element={<CollectionManagement />} />
         <Route path="roles" element={<RoleManagement />} />
         <Route path="vouchers" element={<VoucherManagement />} />
+        <Route path="payments" element={<PaymentManagement />} />
       </Route>
       <Route 
         path="/customize" 

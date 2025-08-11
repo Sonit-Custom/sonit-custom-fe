@@ -8,6 +8,7 @@ const dashboardAPI = {
   getCollections: () => axiosInstance.get('/collections'),
   getRoles: () => axiosInstance.get('/roles'),
   getVouchers: () => axiosInstance.get('/vouchers'),
+  getPayments: () => axiosInstance.get('/payments'),
 };
 
 export default dashboardAPI; 

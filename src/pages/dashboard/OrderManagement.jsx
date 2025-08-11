@@ -69,7 +69,7 @@ const OrderManagement = () => {
                 <div className="text-white/80">{order.user_id}</div>
               </td>
               <td className="p-4 align-top">
-                <div className="text-[#e0d6ce] font-semibold">{`${Math.round(Number(order.total_amount) || 0).toLocaleString('vi-VN')} ₫`}</div>
+                <div className="text-green-300 font-semibold">{`${Math.round(Number(order.total_amount) || 0).toLocaleString('vi-VN')} ₫`}</div>
               </td>
               <td className="p-4 align-top">{statusBadge(order.status)}</td>
               <td className="p-4 align-top">

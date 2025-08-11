@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { FiUsers, FiBox, FiGrid, FiLayers, FiKey, FiTag, FiPackage, FiHome, FiBarChart2 } from 'react-icons/fi';
+import { FiUsers, FiBox, FiGrid, FiLayers, FiKey, FiTag, FiPackage, FiHome, FiBarChart2, FiDollarSign } from 'react-icons/fi';
 
 const navLinks = [
   { to: 'analytics', text: 'Phân tích', icon: <FiBarChart2 /> },
@@ -11,6 +11,7 @@ const navLinks = [
   { to: 'collections', text: 'Quản lý Collections', icon: <FiLayers /> },
   { to: 'roles', text: 'Quản lý Roles', icon: <FiKey /> },
   { to: 'vouchers', text: 'Quản lý Vouchers', icon: <FiTag /> },
+  { to: 'payments', text: 'Quản lý Payments', icon: <FiDollarSign /> },
 ];
 
 const Sidebar = () => {

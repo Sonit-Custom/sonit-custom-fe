@@ -19,6 +19,7 @@ export const fetchCategories = createApiThunk('categories', dashboardAPI.getCate
 export const fetchCollections = createApiThunk('collections', dashboardAPI.getCollections);
 export const fetchRoles = createApiThunk('roles', dashboardAPI.getRoles);
 export const fetchVouchers = createApiThunk('vouchers', dashboardAPI.getVouchers);
+export const fetchPayments = createApiThunk('payments', dashboardAPI.getPayments);
 
 const initialState = {
   users: [],
@@ -28,6 +29,7 @@ const initialState = {
   collections: [],
   roles: [],
   vouchers: [],
+  payments: [],
   isLoading: false,
   error: null,
 };
@@ -37,7 +39,7 @@ const dashboardSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    const thunks = [fetchUsers, fetchOrders, fetchProducts, fetchCategories, fetchCollections, fetchRoles, fetchVouchers];
+    const thunks = [fetchUsers, fetchOrders, fetchProducts, fetchCategories, fetchCollections, fetchRoles, fetchVouchers, fetchPayments];
     
     thunks.forEach(thunk => {
       const entity = thunk.typePrefix.split('/')[1];
